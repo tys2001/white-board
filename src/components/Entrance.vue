@@ -1,12 +1,12 @@
 <template>
   <div class="component-container">
-    <p>ホワイトボード</p>
-    <p>
+    <div class="title">イメージをシェアしよう</div>
+    <div class="room-button">
       <b-button @click="createRoom" variant="primary">新規ボードを作成</b-button>
-    </p>
-    <p class="text-right">
-      <b-badge class="build-info">Build: {{buildTimestamp}}</b-badge>
-    </p>
+    </div>
+    <div class="build-label">
+      <b-badge>Build: {{buildTimestamp}}</b-badge>
+    </div>
   </div>
 </template>
 
@@ -35,6 +35,26 @@ export default {
 .component-container {
   width: 100%;
   height: 100%;
-  padding: 20px;
+  background-image: url(/entrance.jpg);
+  background-size: cover;
+  background-position: center;
+  display: grid;
+  grid-template-rows: 1fr 100px 30px;
+}
+.title {
+  height: fit-content;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  align-self: center;
+  font-size: 24px;
+  padding: 5px 0;
+}
+.room-button {
+  place-self: center;
+}
+.build-label {
+  place-self: end;
+  padding: 5px;
 }
 </style>
