@@ -4,17 +4,26 @@
       <b-button @click="leaveRoom">
         <b-icon icon="arrow-return-left" />
       </b-button>
-      <b-button @click="clearBoard">
-        <b-icon icon="trash-fill" />
-      </b-button>
       <b-button
         v-for="color in colors"
         :key="color"
         pill
-        :style="{backgroundColor:color,borderWidth:color===selectedColor?'5px':'0'}"
-        @click="selectedColor=color"
+        :style="{ backgroundColor: color }"
+        :selected="selectedMode === 'drawLine' && color === selectedColor"
+        @click="clickDrawMode(color)"
       >
         <b-icon icon="brush" />
+      </b-button>
+      <b-button
+        pill
+        variant="light"
+        :selected="selectedMode === 'erase'"
+        @click="selectedMode = 'erase'"
+      >
+        <b-icon icon="layout-sidebar" />
+      </b-button>
+      <b-button pill @click="clearBoard">
+        <b-icon icon="trash-fill" />
       </b-button>
     </div>
     <svg
@@ -37,6 +46,8 @@
         stroke-linecap="round"
         stroke-width="5"
         :points="pointsAttr(element.points)"
+        @mousemove.prevent="dragMoveOnElement(element.id)"
+        @touchmove.prevent="dragMoveOnElement(element.id)"
       />
     </svg>
   </div>
@@ -51,6 +62,7 @@ export default {
       elements: [],
       colors: ["black", "red", "blue", "green", "yellow", "purple", "cyan"],
       selectedColor: "black",
+      selectedMode: "drawLine",
     };
   },
   created() {
@@ -73,32 +85,48 @@ export default {
       const newElement = { points: [], color: this.selectedColor };
       this.elements.push(newElement);
       const rect = this.$refs.svgElement.getBoundingClientRect();
-      this.dragMoveHandler = () => {
-        if (event.touches) {
-          event.clientX = event.touches[0].clientX;
-          event.clientY = event.touches[0].clientY;
-        }
-        newElement.points.push({
-          x: event.clientX - rect.x,
-          y: event.clientY - rect.y,
-        });
-      };
-      this.dragEndHandler = () => {
-        if (newElement.points.length === 0) return;
-        this.elementsCollectionRef.add(newElement);
-      };
+      if (this.selectedMode === "drawLine") {
+        this.dragMoveHandler = () => {
+          if (event.touches) {
+            event.clientX = event.touches[0].clientX;
+            event.clientY = event.touches[0].clientY;
+          }
+          newElement.points.push({
+            x: event.clientX - rect.x,
+            y: event.clientY - rect.y,
+          });
+        };
+        this.dragEndHandler = () => {
+          if (newElement.points.length === 0) return;
+          this.elementsCollectionRef.add(newElement);
+        };
+      } else if (this.selectedMode === "erase") {
+        this.dragMoveOnElementHandler = (id) => {
+          this.elementsCollectionRef.doc(id).delete();
+        };
+      }
     },
     dragMove() {
       if (this.dragMoveHandler) {
         this.dragMoveHandler();
       }
     },
+    dragMoveOnElement(id) {
+      if (this.dragMoveOnElementHandler) {
+        this.dragMoveOnElementHandler(id);
+      }
+    },
     dragEnd() {
       if (this.dragEndHandler) {
         this.dragEndHandler();
-        this.dragMoveHandler = null;
-        this.dragEndHandler = null;
       }
+      this.dragMoveHandler = null;
+      this.dragMoveOnElementHandler = null;
+      this.dragEndHandler = null;
+    },
+    clickDrawMode(color) {
+      this.selectedMode = "drawLine";
+      this.selectedColor = color;
     },
     async clearBoard() {
       if (!confirm("ボードをクリアしますか？")) return;
@@ -146,5 +174,13 @@ export default {
   width: 40px;
   height: 40px;
   margin-right: 5px;
+  border-width: 0px;
+}
+.header > button[selected] {
+  border-width: 5px;
+}
+.header > button > svg {
+  display: block;
+  margin: 0 auto;
 }
 </style>
