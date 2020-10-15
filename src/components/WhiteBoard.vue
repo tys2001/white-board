@@ -41,13 +41,12 @@
       <polyline
         v-for="element in elements"
         :key="element.id"
+        :element-id="element.id"
         fill="none"
         :stroke="element.color"
         stroke-linecap="round"
         stroke-width="5"
         :points="pointsAttr(element.points)"
-        @mousemove.prevent="dragMoveOnElement(element.id)"
-        @touchmove.prevent="dragMoveOnElement(element.id)"
       />
     </svg>
   </div>
@@ -101,8 +100,17 @@ export default {
           this.elementsCollectionRef.add(newElement);
         };
       } else if (this.selectedMode === "erase") {
-        this.dragMoveOnElementHandler = (id) => {
-          this.elementsCollectionRef.doc(id).delete();
+        this.dragMoveHandler = () => {
+          const target = event.touches
+            ? document.elementFromPoint(
+                event.touches[0].clientX,
+                event.touches[0].clientY
+              )
+            : event.target;
+          if (target.tagName === "polyline") {
+            const elementId = target.getAttribute("element-id");
+            this.elementsCollectionRef.doc(elementId).delete();
+          }
         };
       }
     },
@@ -111,17 +119,11 @@ export default {
         this.dragMoveHandler();
       }
     },
-    dragMoveOnElement(id) {
-      if (this.dragMoveOnElementHandler) {
-        this.dragMoveOnElementHandler(id);
-      }
-    },
     dragEnd() {
       if (this.dragEndHandler) {
         this.dragEndHandler();
       }
       this.dragMoveHandler = null;
-      this.dragMoveOnElementHandler = null;
       this.dragEndHandler = null;
     },
     clickDrawMode(color) {
@@ -178,6 +180,7 @@ export default {
 }
 .header > button[selected] {
   border-width: 5px;
+  border-color: gray;
 }
 .header > button > svg {
   display: block;
