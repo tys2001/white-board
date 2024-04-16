@@ -218,6 +218,7 @@ const convertPointsToString = (points: DrawPoint[]) => {
 }
 .header > button[selected="true"] {
   border-width: 5px;
-  border-color: gray;
+  border-color: lightgray;
+  border-style: solid;
 }
 </style>
